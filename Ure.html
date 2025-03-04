@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>e-Mladinska</title>
+    <title>URE</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -164,22 +164,23 @@
         <h2><strong>VPIŠI SREČANJE</strong></h2>
         <div class="group-select">Izberite skupino:</div>
         <div id="group-select-buttons">
-            <button onclick="selectGroup('STAREJŠA MLADINSKA SKUPINA')">STAREJŠA MLADINSKA SKUPINA</button>
-            <button onclick="selectGroup('MLADINSKA SKUPINA')">MLADINSKA SKUPINA</button>
+            <button onclick="selectGroup('SLOVENŠČINA')">SLOVENŠČINA</button>
+            <button onclick="selectGroup('MATEMATIKA')">MATEMATIKA</button>
+            <button onclick="selectGroup('RAČUNALNIŠTVO')">RAČUNALNIŠTVO</button>
+            <button onclick="selectGroup('LIKOVNA')">LIKOVNA</button>
         </div>
         <div class="name-list" id="name-list">
             <!-- Imena članov bodo prikazana tukaj -->
         </div>
         <input type="date" id="meeting-date" /><br><br>
         <textarea id="notes" placeholder="Opombe..."></textarea><br><br>
-        <button onclick="saveMeeting()">Shrani srečanje</button>
         <button onclick="saveAndNewMeeting()">Shrani in novo srečanje</button>
         <button onclick="closeMeetingModal()">Zapri</button>
     </div>
 
     <footer>
-        <div>© e-Mladinska, vse pravice pridržane</div>
-        <div> Verzija 1.3.0 </div>
+        <div>Vpis ur</div>
+        <div> Verzija 1.3.0 - možne napake</div>
     </footer>
 
     <div id="timer" class="timer hidden"></div>
