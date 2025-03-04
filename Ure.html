@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-Mladinska</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        .hidden { display: none; }
+        .menu {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+        }
+        .menu button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .container { margin-top: 120px; padding: 20px; text-align: center; }
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            width: 400px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 5;
+        }
+        .name-item {
+            font-weight: bold;
+            cursor: pointer;
+            padding: 5px;
+            margin: 5px;
+        }
+        .name-item.selected {
+            color: green;
+            font-weight: bold;
+        }
+        .name-item.absent {
+            color: red;
+            font-weight: bold;
+        }
+        .group-select {
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 80%;
+            margin: auto;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: left;
+            cursor: pointer;
+            text-align: center;
+        }
+        th { font-weight: bold; }
+        .group-name {
+            color: blue;
+            font-weight: bold;
+        }
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .meeting-details div {
+            margin-bottom: 10px;
+            text-align: left; /* Leva poravnava besedila */
+        }
+        .timer {
+            position: fixed;
+            top: 20%;
+            right: 20px;
+            font-size: 24px;
+            background-color: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 50%;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="login-screen">
+        <h2>Prijava</h2>
+        <input type="text" id="username" placeholder="Uporabniško ime"><br><br>
+        <input type="password" id="password" placeholder="Geslo"><br><br>
+        <button onclick="login()">Prijava</button>
+    </div>
+
+    <div id="main-content" class="hidden">
+        <div class="menu">
+            <button onclick="showHome()">DOMOV</button>
+            <button onclick="showMeetings()">TABELA</button>
+            <button onclick="logout()">ODJAVA</button>
+        </div>
+        <div class="container" id="home-page">
+            <h2>Izberi mesec</h2>
+            <button onclick="openNewMeetingModal()">Vpiši srečanje</button>
+        </div>
+        <div id="meetings-page" class="hidden">
+            <h2>Srečanja</h2>
+            <table id="meetings-table">
+                <thead>
+                    <tr>
+                        <th>Skupina</th>
+                        <th>Datum</th>
+                        <th>Prisotni</th>
+                        <th>Podrobnosti</th>
+                        <th>Izbriši</th>
+                    </tr>
+                </thead>
+                <tbody id="meetings-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="overlay" class="overlay hidden"></div>
+
+    <div id="meeting-modal" class="modal hidden">
+        <h2><strong>VPIŠI SREČANJE</strong></h2>
+        <div class="group-select">Izberite skupino:</div>
+        <div id="group-select-buttons">
+            <button onclick="selectGroup('STAREJŠA MLADINSKA SKUPINA')">STAREJŠA MLADINSKA SKUPINA</button>
+            <button onclick="selectGroup('MLADINSKA SKUPINA')">MLADINSKA SKUPINA</button>
+        </div>
+        <div class="name-list" id="name-list">
+            <!-- Imena članov bodo prikazana tukaj -->
+        </div>
+        <input type="date" id="meeting-date" /><br><br>
+        <textarea id="notes" placeholder="Opombe..."></textarea><br><br>
+        <button onclick="saveMeeting()">Shrani srečanje</button>
+        <button onclick="saveAndNewMeeting()">Shrani in novo srečanje</button>
+        <button onclick="closeMeetingModal()">Zapri</button>
+    </div>
+
+    <footer>
+        <div>© e-Mladinska, vse pravice pridržane</div>
+        <div> Verzija 1.3.0 </div>
+    </footer>
+
+    <div id="timer" class="timer hidden"></div>
+
+    <script>
+        let currentUser = null;
+        let selectedGroup = '';
+        const groupMembers = {
+            'SLOVENŠČINA': ['Anže Jelen', 'Tinkara Jelen'],
+            'MATEMATIKA': ['Anže Jelen', 'Tinkara Jelen'],
+            'RAČUNALNIŠTVO': ['Anže Jelen', 'Tinkara Jelen'],
+            'LIKOVNA': ['Anže Jelen', 'Tinkara Jelen']
+
+        };
+
+        let meetings = JSON.parse(localStorage.getItem('meetings')) || [];
+
+        const users = [
+            { ime: "Jaša Petrinjak", uporabniskoIme: "jp09", geslo: "JašaPetrinjak" }
+        ];
+
+        function login() {
+            currentUser = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const user = users.find(user => user.uporabniskoIme === currentUser && user.geslo === password);
+            if (user) {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                startTimer(); // Začetek odštevanja po prijavi
+            } else {
+                alert('Napačno uporabniško ime ali geslo.');
+            }
+        }
+
+        function logout() {
+            document.getElementById('main-content').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            clearInterval(timerInterval);
+        }
+
+        function startTimer() {
+            let timeRemaining = 60;
+            document.getElementById('timer').classList.remove('hidden');
+            const timerElement = document.getElementById('timer');
+            timerElement.textContent = `${timeRemaining} s`;
+
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                timerElement.textContent = `${timeRemaining} s`;
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    alert('Čas je potekel, samodejna odjava!');
+                    logout(); // Samodejna odjava po 60 sekundah
+                }
+            }, 1000);
+        }
+
+        function showHome() {
+            document.getElementById('home-page').classList.remove('hidden');
+            document.getElementById('meetings-page').classList.add('hidden');
+        }
+
+        function showMeetings() {
+            document.getElementById('home-page').classList.add('hidden');
+            document.getElementById('meetings-page').classList.remove('hidden');
+            renderMeetings();
+        }
+
+        function openNewMeetingModal() {
+            document.getElementById('meeting-modal').classList.remove('hidden');
+            document.getElementById('overlay').classList.remove('hidden');
+        }
+
+        function closeMeetingModal() {
+            document.getElementById('meeting-modal').classList.add('hidden');
+            document.getElementById('overlay').classList.add('hidden');
+        }
+
+        function selectGroup(group) {
+            selectedGroup = group;
+            document.getElementById('name-list').innerHTML = '';
+            groupMembers[group].forEach(name => {
+                const nameDiv = document.createElement('div');
+                nameDiv.classList.add('name-item');
+                nameDiv.textContent = name;
+                nameDiv.onclick = () => togglePresence(nameDiv);
+                document.getElementById('name-list').appendChild(nameDiv);
+            });
+        }
+
+        function togglePresence(nameDiv) {
+            nameDiv.classList.toggle('selected');
+            if (!nameDiv.classList.contains('selected')) {
+                nameDiv.classList.add('absent');
+            } else {
+                nameDiv.classList.remove('absent');
+            }
+        }
+
+        function formatDate(date) {
+            const d = new Date(date);
+            const day = d.getDate();
+            const month = d.getMonth() + 1;
+            const year = d.getFullYear();
+            return `${day}.${month}.${year}`;
+        }
+
+        function saveMeeting() {
+            const date = document.getElementById('meeting-date').value;
+            const notes = document.getElementById('notes').value;
+            if (!selectedGroup || !date || !notes) {
+                alert('Prosimo, izpolnite vse podatke.');
+                return;
+            }
+            const presentMembers = Array.from(document.querySelectorAll('.name-item.selected')).map(item => item.textContent);
+            const absentMembers = Array.from(document.querySelectorAll('.name-item.absent')).map(item => item.textContent);
+            const formattedDate = formatDate(date);
+            const meetingTime = new Date().toLocaleString();
+            meetings.push({
+                group: selectedGroup,
+                date: formattedDate,
+                presentMembers: presentMembers,
+                absentMembers: absentMembers,
+                notes: notes,
+                enteredBy: users.find(user => user.uporabniskoIme === currentUser).ime,
+                meetingTime: meetingTime
+            });
+            localStorage.setItem('meetings', JSON.stringify(meetings));
+            renderMeetings();
+            closeMeetingModal();
+        }
+
+        function saveAndNewMeeting() {
+            saveMeeting();
+            document.getElementById('notes').value = '';
+            document.getElementById('meeting-date').value = '';
+            document.getElementById('name-list').innerHTML = '';
+            selectedGroup = '';
+        }
+
+        function renderMeetings() {
+            const meetingListDiv = document.getElementById('meetings-list');
+            meetingListDiv.innerHTML = '';
+            meetings.forEach((meeting, index) => {
+                const tr = document.createElement('tr');
+
+                const tdGroup = document.createElement('td');
+                tdGroup.classList.add('group-name');
+                tdGroup.textContent = meeting.group;
+                tr.appendChild(tdGroup);
+
+                const tdDate = document.createElement('td');
+                tdDate.textContent = meeting.date;
+                tr.appendChild(tdDate);
+
+                const tdAttendance = document.createElement('td');
+                tdAttendance.textContent = meeting.presentMembers.length + ' prisotni, ' + meeting.absentMembers.length + ' odsotni';
+                tr.appendChild(tdAttendance);
+
+                const tdButton = document.createElement('td');
+                const button = document.createElement('button');
+                button.textContent = 'Poglej';
+                button.onclick = () => viewMeeting(index);
+                tdButton.appendChild(button);
+                tr.appendChild(tdButton);
+
+                const tdDelete = document.createElement('td');
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Izbriši';
+                deleteButton.onclick = () => deleteMeeting(index);
+                tdDelete.appendChild(deleteButton);
+                tr.appendChild(tdDelete);
+
+                meetingListDiv.appendChild(tr);
+            });
+        }
+
+        function viewMeeting(index) {
+            const meeting = meetings[index];
+            alert(`
+                Skupina: ${meeting.group}
+                Datum: ${meeting.date}
+                Prisotni: ${meeting.presentMembers.join(', ')}
+                Odsotni: ${meeting.absentMembers.join(', ')}
+                Opombe: ${meeting.notes}
+                Vnesel: ${meeting.enteredBy}
+                Čas vnos: ${meeting.meetingTime}
+            `);
+        }
+
+        function deleteMeeting(index) {
+            meetings.splice(index, 1);
+            localStorage.setItem('meetings', JSON.stringify(meetings));
+            renderMeetings();
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
