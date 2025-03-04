@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VPIS UR</title>
+    <title>URE</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -164,10 +164,10 @@
         <h2><strong>VPIŠI SREČANJE</strong></h2>
         <div class="group-select">Izberite skupino:</div>
         <div id="group-select-buttons">
-            <button onclick="selectGroup('SLOVENŠČINA')">SLOVENŠČINA</button>
-            <button onclick="selectGroup('MATEMATIKA')">MATEMATIKA</button>
-            <button onclick="selectGroup('RAČUNALNIŠTVO')">RAČUNALNIŠTVO</button>
-            <button onclick="selectGroup('LIKOVNA')">LIKOVNA</button>
+            <button onclick="selectGroup('SLOVENŠČINA')">SLO</button>
+            <button onclick="selectGroup('MATEMATIKA')">MAT</button>
+            <button onclick="selectGroup('RAČUNALNIŠTVO')">RAČ</button>
+            <button onclick="selectGroup('LIKOVNA')">LIK</button>
         </div>
         <div class="name-list" id="name-list">
             <!-- Imena članov bodo prikazana tukaj -->
@@ -175,13 +175,14 @@
         <input type="date" id="meeting-date" /><br><br>
         <textarea id="notes" placeholder="Opombe..."></textarea><br><br>
         <button onclick="saveMeeting()">Shrani srečanje</button>
-        <button onclick="saveAndNewMeeting()">Očisti</button>
+        <button onclick="saveAndNewMeeting()">Shrani in novo srečanje</button>
         <button onclick="closeMeetingModal()">Zapri</button>
     </div>
 
     <footer>
-        <div>Vpis ur</div>
-        <div> Verzija 1.3.0 - možne napake</div>
+        <div>Vpis ur - možne napake.</div>
+        <div>Pred odjavo preverite morebitne napake.</div>
+        <div> Verzija 1.3.0 </div>
     </footer>
 
     <div id="timer" class="timer hidden"></div>
@@ -194,12 +195,13 @@
             'MATEMATIKA': ['Anže Jelen', 'Tinkara Jelen'],
             'RAČUNALNIŠTVO': ['Anže Jelen', 'Tinkara Jelen'],
             'LIKOVNA': ['Anže Jelen', 'Tinkara Jelen']
+
         };
 
         let meetings = JSON.parse(localStorage.getItem('meetings')) || [];
 
         const users = [
-            { ime: "Jaša Petrinjak", uporabniskoIme: "jp09", geslo: "JašaPetrinjak" }
+            { ime: "Jaša Petrinjak", uporabniskoIme: "jp09", geslo: "Jaša Petrinjak" }
         ];
 
         function login() {
@@ -300,18 +302,6 @@
             const absentMembers = Array.from(document.querySelectorAll('.name-item.absent')).map(item => item.textContent);
             const formattedDate = formatDate(date);
             const meetingTime = new Date().toLocaleString();
-
-            // Debug: loganje podatkov, ki jih shranjujemo
-            console.log('Shranjujemo srečanje:', {
-                group: selectedGroup,
-                date: formattedDate,
-                presentMembers: presentMembers,
-                absentMembers: absentMembers,
-                notes: notes,
-                enteredBy: users.find(user => user.uporabniskoIme === currentUser).ime,
-                meetingTime: meetingTime
-            });
-
             meetings.push({
                 group: selectedGroup,
                 date: formattedDate,
@@ -321,22 +311,22 @@
                 enteredBy: users.find(user => user.uporabniskoIme === currentUser).ime,
                 meetingTime: meetingTime
             });
-            
             localStorage.setItem('meetings', JSON.stringify(meetings));
-
-            // Debug: preverjanje, če so podatki shranjeni v localStorage
-            console.log('Shranjeni podatki v localStorage:', localStorage.getItem('meetings'));
-
             renderMeetings();
             closeMeetingModal();
+        }
+
+        function saveAndNewMeeting() {
+            saveMeeting();
+            document.getElementById('notes').value = '';
+            document.getElementById('meeting-date').value = '';
+            document.getElementById('name-list').innerHTML = '';
+            selectedGroup = '';
         }
 
         function renderMeetings() {
             const meetingListDiv = document.getElementById('meetings-list');
             meetingListDiv.innerHTML = '';
-
-            console.log('Nalagam srečanja:', meetings); // Logiranje nalaganih srečanj
-            
             meetings.forEach((meeting, index) => {
                 const tr = document.createElement('tr');
 
@@ -373,30 +363,21 @@
 
         function viewMeeting(index) {
             const meeting = meetings[index];
-            const meetingDetails = `
-                <div><strong>Skupina:</strong> ${meeting.group}</div>
-                <div><strong>Datum:</strong> ${meeting.date}</div>
-                <div><strong>Prisotni:</strong> ${meeting.presentMembers.join(', ')}</div>
-                <div><strong>Odsotni:</strong> ${meeting.absentMembers.join(', ')}</div>
-                <div><strong>Opombe:</strong> ${meeting.notes}</div>
-                <div><strong>Vnesel:</strong> ${meeting.enteredBy}</div>
-                <div><strong>Čas srečanja:</strong> ${meeting.meetingTime}</div>
-            `;
-            alert(meetingDetails);
+            alert(`
+                Skupina: ${meeting.group}
+                Datum: ${meeting.date}
+                Prisotni: ${meeting.presentMembers.join(', ')}
+                Odsotni: ${meeting.absentMembers.join(', ')}
+                Opombe: ${meeting.notes}
+                Vnesel: ${meeting.enteredBy}
+                Čas vnos: ${meeting.meetingTime}
+            `);
         }
 
         function deleteMeeting(index) {
-            if (confirm("Ste prepričani, da želite izbrisati to srečanje?")) {
-                meetings.splice(index, 1);
-                localStorage.setItem('meetings', JSON.stringify(meetings));
-                renderMeetings();
-            }
-        }
-
-        function saveAndNewMeeting() {
-            document.getElementById('meeting-date').value = '';
-            document.getElementById('notes').value = '';
-            document.getElementById('name-list').innerHTML = '';
+            meetings.splice(index, 1);
+            localStorage.setItem('meetings', JSON.stringify(meetings));
+            renderMeetings();
         }
     </script>
 </body>
