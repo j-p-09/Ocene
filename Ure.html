@@ -194,7 +194,6 @@
             'MATEMATIKA': ['Anže Jelen', 'Tinkara Jelen'],
             'RAČUNALNIŠTVO': ['Anže Jelen', 'Tinkara Jelen'],
             'LIKOVNA': ['Anže Jelen', 'Tinkara Jelen']
-
         };
 
         let meetings = JSON.parse(localStorage.getItem('meetings')) || [];
@@ -301,6 +300,18 @@
             const absentMembers = Array.from(document.querySelectorAll('.name-item.absent')).map(item => item.textContent);
             const formattedDate = formatDate(date);
             const meetingTime = new Date().toLocaleString();
+
+            // Debug: loganje podatkov, ki jih shranjujemo
+            console.log('Shranjujemo srečanje:', {
+                group: selectedGroup,
+                date: formattedDate,
+                presentMembers: presentMembers,
+                absentMembers: absentMembers,
+                notes: notes,
+                enteredBy: users.find(user => user.uporabniskoIme === currentUser).ime,
+                meetingTime: meetingTime
+            });
+
             meetings.push({
                 group: selectedGroup,
                 date: formattedDate,
@@ -310,22 +321,22 @@
                 enteredBy: users.find(user => user.uporabniskoIme === currentUser).ime,
                 meetingTime: meetingTime
             });
+            
             localStorage.setItem('meetings', JSON.stringify(meetings));
+
+            // Debug: preverjanje, če so podatki shranjeni v localStorage
+            console.log('Shranjeni podatki v localStorage:', localStorage.getItem('meetings'));
+
             renderMeetings();
             closeMeetingModal();
-        }
-
-        function saveAndNewMeeting() {
-            saveMeeting();
-            document.getElementById('notes').value = '';
-            document.getElementById('meeting-date').value = '';
-            document.getElementById('name-list').innerHTML = '';
-            selectedGroup = '';
         }
 
         function renderMeetings() {
             const meetingListDiv = document.getElementById('meetings-list');
             meetingListDiv.innerHTML = '';
+
+            console.log('Nalagam srečanja:', meetings); // Logiranje nalaganih srečanj
+            
             meetings.forEach((meeting, index) => {
                 const tr = document.createElement('tr');
 
@@ -362,28 +373,31 @@
 
         function viewMeeting(index) {
             const meeting = meetings[index];
-            alert(`
-                Skupina: ${meeting.group}
-                Datum: ${meeting.date}
-                Prisotni: ${meeting.presentMembers.join(', ')}
-                Odsotni: ${meeting.absentMembers.join(', ')}
-                Opombe: ${meeting.notes}
-                Vnesel: ${meeting.enteredBy}
-                Čas vnos: ${meeting.meetingTime}
-            `);
+            const meetingDetails = `
+                <div><strong>Skupina:</strong> ${meeting.group}</div>
+                <div><strong>Datum:</strong> ${meeting.date}</div>
+                <div><strong>Prisotni:</strong> ${meeting.presentMembers.join(', ')}</div>
+                <div><strong>Odsotni:</strong> ${meeting.absentMembers.join(', ')}</div>
+                <div><strong>Opombe:</strong> ${meeting.notes}</div>
+                <div><strong>Vnesel:</strong> ${meeting.enteredBy}</div>
+                <div><strong>Čas srečanja:</strong> ${meeting.meetingTime}</div>
+            `;
+            alert(meetingDetails);
         }
 
         function deleteMeeting(index) {
-            meetings.splice(index, 1);
-            localStorage.setItem('meetings', JSON.stringify(meetings));
-            renderMeetings();
+            if (confirm("Ste prepričani, da želite izbrisati to srečanje?")) {
+                meetings.splice(index, 1);
+                localStorage.setItem('meetings', JSON.stringify(meetings));
+                renderMeetings();
+            }
+        }
+
+        function saveAndNewMeeting() {
+            document.getElementById('meeting-date').value = '';
+            document.getElementById('notes').value = '';
+            document.getElementById('name-list').innerHTML = '';
         }
     </script>
 </body>
 </html>
-
-
-
-
-
-
