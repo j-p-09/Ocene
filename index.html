@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html lang="sl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Ocene</title>
-    <!-- Dodana favicon ikona -->
-    <link rel="icon" href="Lg.png" type="image/png">
+    <link rel="icon" href="Lg.png" type="image/png" />
     <style>
         body {
             font-family: 'Aptos Narrow', sans-serif;
             margin: 20px;
         }
+        select {
+            font-family: 'Aptos Narrow', sans-serif;
+            padding: 5px 10px;
+            margin-bottom: 10px;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 10px;
         }
         th, td {
             border: 1px solid black;
@@ -28,81 +32,43 @@
         .kratica {
             font-weight: bold;
         }
-        .pisna-ocena, .ustna-ocena, .koncna-ocena, .izdelek-ocena, .zakljucna-ocena {
-            font-weight: bold;
-            cursor: pointer;
-        }
+        .pisna-ocena { color: red; font-weight: bold; cursor: pointer; }
+        .ustna-ocena { color: blue; font-weight: bold; cursor: pointer; }
+        .koncna-ocena { color: green; font-weight: bold; cursor: pointer; }
+        .izdelek-ocena { color: purple; font-weight: bold; cursor: pointer; }
+        .zakljucna-ocena { color: black; font-weight: bold; font-size: 1.2em; cursor: pointer; }
         .pisna-ocena:hover, .ustna-ocena:hover, .koncna-ocena:hover, .izdelek-ocena:hover, .zakljucna-ocena:hover {
             text-decoration: underline;
-        }
-        .pisna-ocena { color: red; }
-        .ustna-ocena { color: blue; }
-        .koncna-ocena { color: green; }
-        .izdelek-ocena { color: purple; }
-        .zakljucna-ocena {
-            color: black;
-            font-size: 1.2em;
         }
         .stara-ocena {
             color: grey;
             font-size: 0.8em;
         }
-        .legend {
-            margin-top: 20px;
-        }
-        .legend span {
-            display: inline-block;
-            margin-right: 10px;
-            font-weight: bold;
-        }
-        .legend .pisna-ocena { color: red; }
-        .legend .ustna-ocena { color: blue; }
-        .legend .koncna-ocena { color: green; }
-        .legend .izdelek-ocena { color: purple; }
-        .legend .zakljucna-ocena { color: black; }
-        .action-buttons {
-            margin-top: 20px;
-        }
-        select, button {
-            font-family: 'Aptos Narrow', sans-serif;
-            padding: 5px 10px;
-            margin: 5px 0;
-        }
     </style>
 </head>
 <body>
     <h1>OCENE</h1>
+
+    <label for="tipOcene">Izberite tip ocene:</label>
+    <select id="tipOcene">
+        <option value="pisna">Pisna ocena</option>
+        <option value="ustna">Ustna ocena</option>
+        <option value="koncna">Končna ocena</option>
+        <option value="izdelek">Izdelek</option>
+        <option value="zakljucna">Zaključna ocena</option>
+    </select>
+
     <table id="oceneTabela">
         <thead>
             <tr>
                 <th>Predmet</th>
                 <th>Prvo ocenjevalno obdobje</th>
-                <th>Drogo ocenjevalno obdobje</th>
+                <th>Drugo ocenjevalno obdobje</th>
                 <th>Konec</th>
             </tr>
         </thead>
-        <tbody>
-            <!-- Predmeti bodo tukaj dinamično dodani preko JavaScript-a -->
-        </tbody>
+        <tbody></tbody>
     </table>
-
-    <div class="legend">
-        <span class="pisna-ocena">PISNA OCENA</span>
-        <span class="ustna-ocena">USTNA OCENA</span>
-        <span class="koncna-ocena">KONČNA OCENA</span>
-        <span class="izdelek-ocena">IZDELEK</span>
-        <span class="zakljucna-ocena">ZAKLJUČNA OCENA</span>
-        <div class="action-buttons">
-            <label for="tipOcene">Izberite tip ocene:</label>
-            <select id="tipOcene">
-                <option value="pisna">Pisna ocena</option>
-                <option value="ustna">Ustna ocena</option>
-                <option value="koncna">Končna ocena</option>
-                <option value="izdelek">Izdelek</option>
-                <option value="zakljucna">Zaključna ocena</option>
-            </select>
-        </div>
-    </div>
 
     <script>
         const predmeti = [
@@ -122,88 +88,96 @@
             { kratica: "NEJ", naziv: "Nemščina" },
         ];
 
-        const tabela = document.getElementById("oceneTabela").getElementsByTagName('tbody')[0];
+        const tabela = document.querySelector("#oceneTabela tbody");
         const tipOceneSelect = document.getElementById("tipOcene");
 
-        function nalaganjeOcen() {
-            const ocene = JSON.parse(localStorage.getItem('ocene')) || {};
+        function shraniOcene(ocene) {
+            localStorage.setItem("ocene", JSON.stringify(ocene));
+        }
+
+        function naloziOcene() {
+            return JSON.parse(localStorage.getItem("ocene")) || {};
+        }
+
+        function izrisiOcene() {
+            const ocene = naloziOcene();
+            tabela.innerHTML = "";
+
             predmeti.forEach(predmet => {
-                let row = tabela.insertRow();
-                row.innerHTML = `
-                    <td>
-                        <span class="kratica">${predmet.kratica}</span><br>
-                        ${predmet.naziv}
-                    </td>
-                    <td class="editable" data-predmet="${predmet.kratica}" data-stolpec="1">${ocene[predmet.kratica]?.[1] || ''}</td>
-                    <td class="editable" data-predmet="${predmet.kratica}" data-stolpec="2">${ocene[predmet.kratica]?.[2] || ''}</td>
-                    <td class="editable" data-predmet="${predmet.kratica}" data-stolpec="3">${ocene[predmet.kratica]?.[3] || ''}</td>
-                `;
+                const row = tabela.insertRow();
+                row.insertCell().innerHTML = `<span class="kratica">${predmet.kratica}</span><br>${predmet.naziv}`;
+                for (let i = 1; i <= 3; i++) {
+                    const td = row.insertCell();
+                    td.classList.add("editable");
+                    td.dataset.predmet = predmet.kratica;
+                    td.dataset.stolpec = i;
+                    const celicneOcene = ocene[predmet.kratica]?.[i] || [];
+                    celicneOcene.forEach(ocena => {
+                        const span = document.createElement("span");
+                        span.className = `${ocena.tip}-ocena`;
+                        span.textContent = ocena.vrednost;
+                        td.appendChild(span);
+                        td.appendChild(document.createTextNode(" "));
+                    });
+                }
             });
         }
 
-        function shraniOcene() {
-            const ocene = {};
-            const rows = tabela.rows;
-            for (let i = 0; i < rows.length; i++) {
-                const cells = rows[i].cells;
-                const predmet = cells[0].innerText.split(' ')[0];
-                ocene[predmet] = {
-                    1: cells[1].innerHTML.trim(),
-                    2: cells[2].innerHTML.trim(),
-                    3: cells[3].innerHTML.trim()
-                };
+        function dodajOceno(predmet, stolpec, tip, vrednost) {
+            const ocene = naloziOcene();
+            if (!ocene[predmet]) ocene[predmet] = {};
+            if (!ocene[predmet][stolpec]) ocene[predmet][stolpec] = [];
+            ocene[predmet][stolpec].push({ tip, vrednost });
+            shraniOcene(ocene);
+            izrisiOcene();
+        }
+
+        function odstraniAliUredi(span) {
+            const stara = span.textContent;
+            const predmet = span.closest("td").dataset.predmet;
+            const stolpec = span.closest("td").dataset.stolpec;
+            const tip = span.className.split("-")[0];
+            const ocene = naloziOcene();
+            const oceneVPolju = ocene[predmet]?.[stolpec] || [];
+
+            const index = oceneVPolju.findIndex(o => o.tip === tip && o.vrednost === stara);
+            if (index === -1) return;
+
+            const akcija = prompt(`OCENA: ${stara}\nKAJ ŽELITE NAREDITI?\n1. IZBRISATI\n2. UREDITI OCENO`);
+            if (akcija === "1") {
+                oceneVPolju.splice(index, 1);
+            } else if (akcija === "2") {
+                const nova = prompt("VNESITE NOVO OCENO:");
+                if (nova) oceneVPolju[index].vrednost = nova;
             }
-            localStorage.setItem('ocene', JSON.stringify(ocene));
+
+            shraniOcene(ocene);
+            izrisiOcene();
         }
 
         tabela.addEventListener("click", (event) => {
             const target = event.target;
 
-            if (
-                target.classList.contains("pisna-ocena") ||
-                target.classList.contains("ustna-ocena") ||
-                target.classList.contains("koncna-ocena") ||
-                target.classList.contains("izdelek-ocena") ||
-                target.classList.contains("zakljucna-ocena")
-            ) {
-                const trenutnaOcena = target.textContent;
-                const akcija = prompt(`OCENA: ${trenutnaOcena}\nKAJ ŽELITE NAREDITI?\n1. IZBRISATI\n2. UREDITI OCENO`);
-                
-                if (akcija === "1") {
-                    target.remove();
-                } else if (akcija === "2") {
-                    const novaOcena = prompt("VNESITE NOVO OCENO:");
-                    if (novaOcena) {
-                        target.innerHTML = `<span class="stara-ocena">${trenutnaOcena}</span> <span class="${target.classList[0]}">${novaOcena}</span>`;
-                    }
-                }
-                shraniOcene();
-                return;
+            if (target.matches(".pisna-ocena, .ustna-ocena, .koncna-ocena, .izdelek-ocena, .zakljucna-ocena")) {
+                odstraniAliUredi(target);
             }
 
             if (target.classList.contains("editable")) {
-                const tipOcene = tipOceneSelect.value;
-                if (!tipOcene) {
-                    alert("Izberite tip ocene najprej!");
-                    return;
-                }
-
-                const novaOcena = prompt("Vnesite oceno:");
-                if (novaOcena) {
+                const tip = tipOceneSelect.value;
+                const predmet = target.dataset.predmet;
+                const stolpec = target.dataset.stolpec;
+                const vrednost = prompt("Vnesite oceno:");
+                if (vrednost) {
                     const potrditev = confirm("ALI ŽELITE VPISATI OCENO?");
                     if (potrditev) {
-                        const trenutnaVsebina = target.innerHTML.trim();
-                        const novaVsebina = trenutnaVsebina
-                            ? `${trenutnaVsebina} <span class="${tipOcene}-ocena">${novaOcena}</span>`
-                            : `<span class="${tipOcene}-ocena">${novaOcena}</span>`;
-                        target.innerHTML = novaVsebina;
-                        shraniOcene();
+                        dodajOceno(predmet, stolpec, tip, vrednost);
                     }
                 }
             }
         });
 
-        nalaganjeOcen();
+        izrisiOcene();
     </script>
 </body>
 </html>
+
