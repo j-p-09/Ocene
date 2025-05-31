@@ -24,24 +24,43 @@
             border: 1px solid black;
             text-align: center;
             padding: 8px;
+            vertical-align: top;
         }
         th {
             background-color: #f2f2f2;
             font-weight: bold;
         }
-        .kratica { font-weight: bold; }
-        .pisna-ocena { color: red; font-weight: bold; cursor: pointer; }
-        .ustna-ocena { color: blue; font-weight: bold; cursor: pointer; }
-        .koncna-ocena { color: green; font-weight: bold; cursor: pointer; }
-        .izdelek-ocena { color: purple; font-weight: bold; cursor: pointer; }
-        .zakljucna-ocena { color: black; font-weight: bold; font-size: 1.2em; cursor: pointer; }
-        .pisna-ocena:hover, .ustna-ocena:hover, .koncna-ocena:hover, .izdelek-ocena:hover, .zakljucna-ocena:hover {
+        .kratica {
+            font-weight: bold;
+        }
+        .povprecje {
+            display: block;
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 5px;
+        }
+        .pisna-ocena, .ustna-ocena, .koncna-ocena, .izdelek-ocena, .zakljucna-ocena {
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+        .pisna-ocena { color: red; }
+        .ustna-ocena { color: blue; }
+        .koncna-ocena { color: green; }
+        .izdelek-ocena { color: purple; }
+        .zakljucna-ocena { color: black; font-size: 1.2em; }
+
+        .pisna-ocena:hover, .ustna-ocena:hover, .koncna-ocena:hover,
+        .izdelek-ocena:hover, .zakljucna-ocena:hover {
             text-decoration: underline;
         }
+
         .stara-ocena {
             color: grey;
             font-size: 0.8em;
             text-decoration: line-through;
+            margin-right: 4px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -115,13 +134,29 @@
             return JSON.parse(localStorage.getItem("ocene")) || {};
         }
 
+        function izracunajPovprecje(vrstica) {
+            let ocene = [];
+            for (let i = 1; i <= 3; i++) {
+                const spans = vrstica.cells[i].querySelectorAll("span:not(.stara-ocena)");
+                spans.forEach(span => {
+                    const val = parseFloat(span.textContent);
+                    if (!isNaN(val)) ocene.push(val);
+                });
+            }
+            if (ocene.length === 0) return "—";
+            const sum = ocene.reduce((a, b) => a + b, 0);
+            return (sum / ocene.length).toFixed(2);
+        }
+
         function izrisiOcene() {
             const ocene = naloziOcene();
             tabela.innerHTML = "";
 
             predmeti.forEach(predmet => {
                 const vrstica = tabela.insertRow();
-                vrstica.insertCell().innerHTML = `<span class="kratica">${predmet.kratica}</span><br>${predmet.naziv}`;
+                const celicaPredmet = vrstica.insertCell();
+                celicaPredmet.innerHTML = `<span class="kratica">${predmet.kratica}</span><br>${predmet.naziv}<span class="povprecje"></span>`;
+
                 for (let i = 1; i <= 3; i++) {
                     const td = vrstica.insertCell();
                     td.classList.add("editable");
@@ -136,13 +171,19 @@
                         td.appendChild(document.createTextNode(" "));
                     });
                 }
+
+                // Po vnosu vseh ocen, izračunaj povprečje:
+                const povprecje = izracunajPovprecje(vrstica);
+                celicaPredmet.querySelector(".povprecje").textContent = `Povprečje: ${povprecje}`;
             });
         }
 
         tabela.addEventListener("click", (e) => {
             const target = e.target;
 
-            if (target.matches(".pisna-ocena, .ustna-ocena, .koncna-ocena, .izdelek-ocena, .zakljucna-ocena")) {
+            if (
+                target.matches(".pisna-ocena, .ustna-ocena, .koncna-ocena, .izdelek-ocena, .zakljucna-ocena, .stara-ocena")
+            ) {
                 const stara = target.textContent;
                 const tip = target.className.split("-")[0];
                 const td = target.closest("td");
@@ -150,7 +191,7 @@
 
                 if (akcija === "1") {
                     target.remove();
-                } else if (akcija === "2") {
+                } else if (akcija === "2" && !target.classList.contains("stara-ocena")) {
                     const nova = prompt("VNESITE NOVO OCENO:");
                     if (nova) {
                         const spanStara = document.createElement("span");
@@ -164,14 +205,14 @@
                         target.replaceWith(spanStara, document.createTextNode(" "), spanNova);
                     }
                 }
+
                 shraniOcene();
+                izrisiOcene(); // da osvežimo povprečja
                 return;
             }
 
             if (target.classList.contains("editable")) {
                 const tip = tipOceneSelect.value;
-                const predmet = target.dataset.predmet;
-                const stolpec = target.dataset.stolpec;
                 const vrednost = prompt("Vnesite oceno:");
                 if (vrednost) {
                     const potrditev = confirm("ALI ŽELITE VPISATI OCENO?");
@@ -182,6 +223,7 @@
                         target.appendChild(span);
                         target.appendChild(document.createTextNode(" "));
                         shraniOcene();
+                        izrisiOcene();
                     }
                 }
             }
