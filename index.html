@@ -1,235 +1,227 @@
 <!DOCTYPE html>
 <html lang="sl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Ocene</title>
-    <link rel="icon" href="Lg.png" type="image/png" />
-    <style>
-        body {
-            font-family: 'Aptos Narrow', sans-serif;
-            margin: 20px;
-        }
-        select {
-            font-family: 'Aptos Narrow', sans-serif;
-            padding: 5px 10px;
-            margin-bottom: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        th, td {
-            border: 1px solid black;
-            text-align: center;
-            padding: 8px;
-            vertical-align: top;
-        }
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-        .kratica {
-            font-weight: bold;
-        }
-        .povprecje {
-            display: block;
-            font-size: 0.9em;
-            color: #555;
-            margin-top: 5px;
-        }
-        .pisna-ocena, .ustna-ocena, .koncna-ocena, .izdelek-ocena, .zakljucna-ocena {
-            font-weight: bold;
-            cursor: pointer;
-            margin-right: 4px;
-        }
-        .pisna-ocena { color: red; }
-        .ustna-ocena { color: blue; }
-        .koncna-ocena { color: green; }
-        .izdelek-ocena { color: purple; }
-        .zakljucna-ocena { color: black; font-size: 1.2em; }
-
-        .pisna-ocena:hover, .ustna-ocena:hover, .koncna-ocena:hover,
-        .izdelek-ocena:hover, .zakljucna-ocena:hover {
-            text-decoration: underline;
-        }
-
-        .stara-ocena {
-            color: grey;
-            font-size: 0.8em;
-            text-decoration: line-through;
-            margin-right: 4px;
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ocene</title>
+  <link rel="icon" href="Lg.png" type="image/png" />
+  <style>
+    body {
+      font-family: 'Aptos Narrow', sans-serif;
+      margin: 20px;
+    }
+    select {
+      font-family: 'Aptos Narrow', sans-serif;
+      padding: 5px 10px;
+      margin-bottom: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid black;
+      text-align: center;
+      padding: 8px;
+      vertical-align: middle;
+    }
+    th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+    .kratica {
+      font-weight: bold;
+    }
+    .povprecje {
+      display: block;
+      font-size: 0.9em;
+      color: #555;
+      margin-top: 5px;
+    }
+    .pisna-ocena, .ustna-ocena, .koncna-ocena, .izdelek-ocena, .zakljucna-ocena {
+      font-weight: bold;
+      cursor: pointer;
+      margin: 2px;
+      display: inline-block;
+    }
+    .pisna-ocena { color: red; }
+    .ustna-ocena { color: blue; }
+    .koncna-ocena { color: green; }
+    .izdelek-ocena { color: purple; }
+    .zakljucna-ocena { color: black; font-size: 1.2em; }
+    .pisna-ocena:hover, .ustna-ocena:hover, .koncna-ocena:hover,
+    .izdelek-ocena:hover, .zakljucna-ocena:hover, .stara-ocena:hover {
+      text-decoration: underline;
+    }
+    .stara-ocena {
+      color: grey;
+      font-size: 0.8em;
+      margin-right: 4px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <h1>OCENE</h1>
+  <h1>OCENE</h1>
 
-    <label for="tipOcene">Izberite tip ocene:</label>
-    <select id="tipOcene">
-        <option value="pisna">Pisna ocena</option>
-        <option value="ustna">Ustna ocena</option>
-        <option value="koncna">Končna ocena</option>
-        <option value="izdelek">Izdelek</option>
-        <option value="zakljucna">Zaključna ocena</option>
-    </select>
+  <label for="tipOcene">Izberite tip ocene:</label>
+  <select id="tipOcene">
+    <option value="pisna">Pisna ocena</option>
+    <option value="ustna">Ustna ocena</option>
+    <option value="koncna">Končna ocena</option>
+    <option value="izdelek">Izdelek</option>
+    <option value="zakljucna">Zaključna ocena</option>
+  </select>
 
-    <table id="oceneTabela">
-        <thead>
-            <tr>
-                <th>Predmet</th>
-                <th>Prvo ocenjevalno obdobje</th>
-                <th>Drugo ocenjevalno obdobje</th>
-                <th>Konec</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+  <table id="oceneTabela">
+    <thead>
+      <tr>
+        <th>Predmet</th>
+        <th>Prvo ocenjevalno obdobje</th>
+        <th>Drugo ocenjevalno obdobje</th>
+        <th>Konec</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-    <script>
-        const predmeti = [
-            { kratica: "SLO", naziv: "Slovenščina" },
-            { kratica: "MAT", naziv: "Matematika" },
-            { kratica: "ANJ", naziv: "Angleščina" },
-            { kratica: "UME", naziv: "Umetnost" },
-            { kratica: "ZGO", naziv: "Zgodovina" },
-            { kratica: "GEO", naziv: "Geografija" },
-            { kratica: "FIZ", naziv: "Fizika" },
-            { kratica: "KEM", naziv: "Kemija" },
-            { kratica: "ŠVZ", naziv: "Športna vzgoja" },
-            { kratica: "GOB", naziv: "Grafično oblikovanje" },
-            { kratica: "GMP", naziv: "Grafični in medijski procesi" },
-            { kratica: "IKT", naziv: "Informacijsko komunikacijska tehnologija" },
-            { kratica: "IPM", naziv: "Izbrana poglavja matematike" },
-            { kratica: "NEJ", naziv: "Nemščina" },
-        ];
+  <script>
+    const predmeti = [
+      { kratica: "SLO", naziv: "Slovenščina" },
+      { kratica: "MAT", naziv: "Matematika" },
+      { kratica: "ANJ", naziv: "Angleščina" },
+      { kratica: "UME", naziv: "Umetnost" },
+      { kratica: "ZGO", naziv: "Zgodovina" },
+      { kratica: "GEO", naziv: "Geografija" },
+      { kratica: "FIZ", naziv: "Fizika" },
+      { kratica: "KEM", naziv: "Kemija" },
+      { kratica: "ŠVZ", naziv: "Športna vzgoja" },
+      { kratica: "GOB", naziv: "Grafično oblikovanje" },
+      { kratica: "GMP", naziv: "Grafični in medijski procesi" },
+      { kratica: "IKT", naziv: "Informacijsko komunikacijska tehnologija" },
+      { kratica: "IPM", naziv: "Izbrana poglavja matematike" },
+      { kratica: "NEJ", naziv: "Nemščina" },
+    ];
 
-        const tabela = document.querySelector("#oceneTabela tbody");
-        const tipOceneSelect = document.getElementById("tipOcene");
+    const tabela = document.querySelector("#oceneTabela tbody");
+    const tipOceneSelect = document.getElementById("tipOcene");
 
-        function shraniOcene() {
-            const podatki = {};
-            for (let vrstica of tabela.rows) {
-                const predmet = vrstica.cells[0].querySelector(".kratica").textContent;
-                podatki[predmet] = {};
-                for (let i = 1; i <= 3; i++) {
-                    const celica = vrstica.cells[i];
-                    const spans = celica.querySelectorAll("span");
-                    podatki[predmet][i] = [];
-                    spans.forEach(span => {
-                        const tip = span.className.split("-")[0];
-                        const jeStara = span.classList.contains("stara-ocena");
-                        if (!jeStara) {
-                            podatki[predmet][i].push({ tip: tip, vrednost: span.textContent });
-                        }
-                    });
-                }
-            }
-            localStorage.setItem("ocene", JSON.stringify(podatki));
+    function shraniOcene() {
+      const podatki = {};
+      for (let vrstica of tabela.rows) {
+        const predmet = vrstica.cells[0].querySelector(".kratica").textContent;
+        podatki[predmet] = {};
+        for (let i = 1; i <= 3; i++) {
+          const celica = vrstica.cells[i];
+          const spans = celica.querySelectorAll("span:not(.stara-ocena)");
+          podatki[predmet][i] = [];
+          spans.forEach(span => {
+            const tip = span.className.split("-")[0];
+            podatki[predmet][i].push({ tip: tip, vrednost: span.textContent });
+          });
         }
+      }
+      localStorage.setItem("ocene", JSON.stringify(podatki));
+    }
 
-        function naloziOcene() {
-            return JSON.parse(localStorage.getItem("ocene")) || {};
-        }
+    function naloziOcene() {
+      return JSON.parse(localStorage.getItem("ocene")) || {};
+    }
 
-        function izracunajPovprecje(vrstica) {
-            let ocene = [];
-            for (let i = 1; i <= 3; i++) {
-                const spans = vrstica.cells[i].querySelectorAll("span:not(.stara-ocena)");
-                spans.forEach(span => {
-                    const val = parseFloat(span.textContent);
-                    if (!isNaN(val)) ocene.push(val);
-                });
-            }
-            if (ocene.length === 0) return "—";
-            const sum = ocene.reduce((a, b) => a + b, 0);
-            return (sum / ocene.length).toFixed(2);
-        }
-
-        function izrisiOcene() {
-            const ocene = naloziOcene();
-            tabela.innerHTML = "";
-
-            predmeti.forEach(predmet => {
-                const vrstica = tabela.insertRow();
-                const celicaPredmet = vrstica.insertCell();
-                celicaPredmet.innerHTML = `<span class="kratica">${predmet.kratica}</span><br>${predmet.naziv}<span class="povprecje"></span>`;
-
-                for (let i = 1; i <= 3; i++) {
-                    const td = vrstica.insertCell();
-                    td.classList.add("editable");
-                    td.dataset.predmet = predmet.kratica;
-                    td.dataset.stolpec = i;
-                    const vseOcene = ocene[predmet.kratica]?.[i] || [];
-                    vseOcene.forEach(ocena => {
-                        const span = document.createElement("span");
-                        span.className = `${ocena.tip}-ocena`;
-                        span.textContent = ocena.vrednost;
-                        td.appendChild(span);
-                        td.appendChild(document.createTextNode(" "));
-                    });
-                }
-
-                // Po vnosu vseh ocen, izračunaj povprečje:
-                const povprecje = izracunajPovprecje(vrstica);
-                celicaPredmet.querySelector(".povprecje").textContent = `Povprečje: ${povprecje}`;
-            });
-        }
-
-        tabela.addEventListener("click", (e) => {
-            const target = e.target;
-
-            if (
-                target.matches(".pisna-ocena, .ustna-ocena, .koncna-ocena, .izdelek-ocena, .zakljucna-ocena, .stara-ocena")
-            ) {
-                const stara = target.textContent;
-                const tip = target.className.split("-")[0];
-                const td = target.closest("td");
-                const akcija = prompt(`OCENA: ${stara}\nKAJ ŽELITE NAREDITI?\n1. IZBRISATI\n2. UREDITI OCENO`);
-
-                if (akcija === "1") {
-                    target.remove();
-                } else if (akcija === "2" && !target.classList.contains("stara-ocena")) {
-                    const nova = prompt("VNESITE NOVO OCENO:");
-                    if (nova) {
-                        const spanStara = document.createElement("span");
-                        spanStara.className = "stara-ocena";
-                        spanStara.textContent = stara;
-
-                        const spanNova = document.createElement("span");
-                        spanNova.className = `${tip}-ocena`;
-                        spanNova.textContent = nova;
-
-                        target.replaceWith(spanStara, document.createTextNode(" "), spanNova);
-                    }
-                }
-
-                shraniOcene();
-                izrisiOcene(); // da osvežimo povprečja
-                return;
-            }
-
-            if (target.classList.contains("editable")) {
-                const tip = tipOceneSelect.value;
-                const vrednost = prompt("Vnesite oceno:");
-                if (vrednost) {
-                    const potrditev = confirm("ALI ŽELITE VPISATI OCENO?");
-                    if (potrditev) {
-                        const span = document.createElement("span");
-                        span.className = `${tip}-ocena`;
-                        span.textContent = vrednost;
-                        target.appendChild(span);
-                        target.appendChild(document.createTextNode(" "));
-                        shraniOcene();
-                        izrisiOcene();
-                    }
-                }
-            }
+    function izracunajPovprecje(vrstica) {
+      let ocene = [];
+      for (let i = 1; i <= 3; i++) {
+        const spans = vrstica.cells[i].querySelectorAll("span:not(.stara-ocena)");
+        spans.forEach(span => {
+          const val = parseFloat(span.textContent);
+          if (!isNaN(val)) ocene.push(val);
         });
+      }
+      if (ocene.length === 0) return "—";
+      const sum = ocene.reduce((a, b) => a + b, 0);
+      return (sum / ocene.length).toFixed(2);
+    }
 
+    function izrisiOcene() {
+      const ocene = naloziOcene();
+      tabela.innerHTML = "";
+
+      predmeti.forEach(predmet => {
+        const vrstica = tabela.insertRow();
+        const celicaPredmet = vrstica.insertCell();
+        celicaPredmet.innerHTML = `<span class="kratica">${predmet.kratica}</span><br>${predmet.naziv}<span class="povprecje"></span>`;
+
+        for (let i = 1; i <= 3; i++) {
+          const td = vrstica.insertCell();
+          td.classList.add("editable");
+          td.dataset.predmet = predmet.kratica;
+          td.dataset.stolpec = i;
+          const vseOcene = ocene[predmet.kratica]?.[i] || [];
+          vseOcene.forEach(ocena => {
+            const span = document.createElement("span");
+            span.className = `${ocena.tip}-ocena`;
+            span.textContent = ocena.vrednost;
+            td.appendChild(span);
+            td.appendChild(document.createTextNode(" "));
+          });
+        }
+
+        const povprecje = izracunajPovprecje(vrstica);
+        celicaPredmet.querySelector(".povprecje").textContent = `Povprečje: ${povprecje}`;
+      });
+    }
+
+    tabela.addEventListener("click", (e) => {
+      const target = e.target;
+
+      if (
+        target.matches(".pisna-ocena, .ustna-ocena, .koncna-ocena, .izdelek-ocena, .zakljucna-ocena, .stara-ocena")
+      ) {
+        const stara = target.textContent;
+        const tip = target.className.split("-")[0];
+        const td = target.closest("td");
+        const akcija = prompt(`OCENA: ${stara}\nKAJ ŽELITE NAREDITI?\n1. IZBRISATI\n2. UREDITI OCENO`);
+
+        if (akcija === "1") {
+          target.remove();
+        } else if (akcija === "2" && !target.classList.contains("stara-ocena")) {
+          const nova = prompt("VNESITE NOVO OCENO:");
+          if (nova) {
+            target.classList.add("stara-ocena");
+            target.style.color = "grey";
+            target.style.fontSize = "0.8em";
+
+            const novaSpan = document.createElement("span");
+            novaSpan.className = `${tip}-ocena`;
+            novaSpan.textContent = nova;
+
+            td.insertBefore(novaSpan, target.nextSibling);
+            td.insertBefore(document.createTextNode(" "), novaSpan.nextSibling);
+          }
+        }
+
+        shraniOcene();
         izrisiOcene();
-    </script>
+        return;
+      }
+
+      if (target.classList.contains("editable")) {
+        const tip = tipOceneSelect.value;
+        const vrednost = prompt("Vnesite oceno:");
+        if (vrednost) {
+          const span = document.createElement("span");
+          span.className = `${tip}-ocena`;
+          span.textContent = vrednost;
+          target.appendChild(span);
+          target.appendChild(document.createTextNode(" "));
+          shraniOcene();
+          izrisiOcene();
+        }
+      }
+    });
+
+    izrisiOcene();
+  </script>
 </body>
 </html>
