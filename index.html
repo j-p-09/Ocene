@@ -29,9 +29,7 @@
             background-color: #f2f2f2;
             font-weight: bold;
         }
-        .kratica {
-            font-weight: bold;
-        }
+        .kratica { font-weight: bold; }
         .pisna-ocena { color: red; font-weight: bold; cursor: pointer; }
         .ustna-ocena { color: blue; font-weight: bold; cursor: pointer; }
         .koncna-ocena { color: green; font-weight: bold; cursor: pointer; }
@@ -43,6 +41,7 @@
         .stara-ocena {
             color: grey;
             font-size: 0.8em;
+            text-decoration: line-through;
         }
     </style>
 </head>
@@ -91,8 +90,25 @@
         const tabela = document.querySelector("#oceneTabela tbody");
         const tipOceneSelect = document.getElementById("tipOcene");
 
-        function shraniOcene(ocene) {
-            localStorage.setItem("ocene", JSON.stringify(ocene));
+        function shraniOcene() {
+            const podatki = {};
+            for (let vrstica of tabela.rows) {
+                const predmet = vrstica.cells[0].querySelector(".kratica").textContent;
+                podatki[predmet] = {};
+                for (let i = 1; i <= 3; i++) {
+                    const celica = vrstica.cells[i];
+                    const spans = celica.querySelectorAll("span");
+                    podatki[predmet][i] = [];
+                    spans.forEach(span => {
+                        const tip = span.className.split("-")[0];
+                        const jeStara = span.classList.contains("stara-ocena");
+                        if (!jeStara) {
+                            podatki[predmet][i].push({ tip: tip, vrednost: span.textContent });
+                        }
+                    });
+                }
+            }
+            localStorage.setItem("ocene", JSON.stringify(podatki));
         }
 
         function naloziOcene() {
@@ -104,15 +120,15 @@
             tabela.innerHTML = "";
 
             predmeti.forEach(predmet => {
-                const row = tabela.insertRow();
-                row.insertCell().innerHTML = `<span class="kratica">${predmet.kratica}</span><br>${predmet.naziv}`;
+                const vrstica = tabela.insertRow();
+                vrstica.insertCell().innerHTML = `<span class="kratica">${predmet.kratica}</span><br>${predmet.naziv}`;
                 for (let i = 1; i <= 3; i++) {
-                    const td = row.insertCell();
+                    const td = vrstica.insertCell();
                     td.classList.add("editable");
                     td.dataset.predmet = predmet.kratica;
                     td.dataset.stolpec = i;
-                    const celicneOcene = ocene[predmet.kratica]?.[i] || [];
-                    celicneOcene.forEach(ocena => {
+                    const vseOcene = ocene[predmet.kratica]?.[i] || [];
+                    vseOcene.forEach(ocena => {
                         const span = document.createElement("span");
                         span.className = `${ocena.tip}-ocena`;
                         span.textContent = ocena.vrednost;
@@ -123,43 +139,33 @@
             });
         }
 
-        function dodajOceno(predmet, stolpec, tip, vrednost) {
-            const ocene = naloziOcene();
-            if (!ocene[predmet]) ocene[predmet] = {};
-            if (!ocene[predmet][stolpec]) ocene[predmet][stolpec] = [];
-            ocene[predmet][stolpec].push({ tip, vrednost });
-            shraniOcene(ocene);
-            izrisiOcene();
-        }
-
-        function odstraniAliUredi(span) {
-            const stara = span.textContent;
-            const predmet = span.closest("td").dataset.predmet;
-            const stolpec = span.closest("td").dataset.stolpec;
-            const tip = span.className.split("-")[0];
-            const ocene = naloziOcene();
-            const oceneVPolju = ocene[predmet]?.[stolpec] || [];
-
-            const index = oceneVPolju.findIndex(o => o.tip === tip && o.vrednost === stara);
-            if (index === -1) return;
-
-            const akcija = prompt(`OCENA: ${stara}\nKAJ ŽELITE NAREDITI?\n1. IZBRISATI\n2. UREDITI OCENO`);
-            if (akcija === "1") {
-                oceneVPolju.splice(index, 1);
-            } else if (akcija === "2") {
-                const nova = prompt("VNESITE NOVO OCENO:");
-                if (nova) oceneVPolju[index].vrednost = nova;
-            }
-
-            shraniOcene(ocene);
-            izrisiOcene();
-        }
-
-        tabela.addEventListener("click", (event) => {
-            const target = event.target;
+        tabela.addEventListener("click", (e) => {
+            const target = e.target;
 
             if (target.matches(".pisna-ocena, .ustna-ocena, .koncna-ocena, .izdelek-ocena, .zakljucna-ocena")) {
-                odstraniAliUredi(target);
+                const stara = target.textContent;
+                const tip = target.className.split("-")[0];
+                const td = target.closest("td");
+                const akcija = prompt(`OCENA: ${stara}\nKAJ ŽELITE NAREDITI?\n1. IZBRISATI\n2. UREDITI OCENO`);
+
+                if (akcija === "1") {
+                    target.remove();
+                } else if (akcija === "2") {
+                    const nova = prompt("VNESITE NOVO OCENO:");
+                    if (nova) {
+                        const spanStara = document.createElement("span");
+                        spanStara.className = "stara-ocena";
+                        spanStara.textContent = stara;
+
+                        const spanNova = document.createElement("span");
+                        spanNova.className = `${tip}-ocena`;
+                        spanNova.textContent = nova;
+
+                        target.replaceWith(spanStara, document.createTextNode(" "), spanNova);
+                    }
+                }
+                shraniOcene();
+                return;
             }
 
             if (target.classList.contains("editable")) {
@@ -170,7 +176,12 @@
                 if (vrednost) {
                     const potrditev = confirm("ALI ŽELITE VPISATI OCENO?");
                     if (potrditev) {
-                        dodajOceno(predmet, stolpec, tip, vrednost);
+                        const span = document.createElement("span");
+                        span.className = `${tip}-ocena`;
+                        span.textContent = vrednost;
+                        target.appendChild(span);
+                        target.appendChild(document.createTextNode(" "));
+                        shraniOcene();
                     }
                 }
             }
@@ -180,4 +191,3 @@
     </script>
 </body>
 </html>
-
