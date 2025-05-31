@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ocene</title>
+    <!-- Dodana favicon ikona -->
+    <link rel="icon" href="Lg.png" type="image/png">
     <style>
         body {
             font-family: 'Aptos Narrow', sans-serif;
@@ -33,18 +35,10 @@
         .pisna-ocena:hover, .ustna-ocena:hover, .koncna-ocena:hover, .izdelek-ocena:hover, .zakljucna-ocena:hover {
             text-decoration: underline;
         }
-        .pisna-ocena {
-            color: red;
-        }
-        .ustna-ocena {
-            color: blue;
-        }
-        .koncna-ocena {
-            color: green;
-        }
-        .izdelek-ocena {
-            color: purple;
-        }
+        .pisna-ocena { color: red; }
+        .ustna-ocena { color: blue; }
+        .koncna-ocena { color: green; }
+        .izdelek-ocena { color: purple; }
         .zakljucna-ocena {
             color: black;
             font-size: 1.2em;
@@ -61,21 +55,11 @@
             margin-right: 10px;
             font-weight: bold;
         }
-        .legend .pisna-ocena {
-            color: red;
-        }
-        .legend .ustna-ocena {
-            color: blue;
-        }
-        .legend .koncna-ocena {
-            color: green;
-        }
-        .legend .izdelek-ocena {
-            color: purple;
-        }
-        .legend .zakljucna-ocena {
-            color: black;
-        }
+        .legend .pisna-ocena { color: red; }
+        .legend .ustna-ocena { color: blue; }
+        .legend .koncna-ocena { color: green; }
+        .legend .izdelek-ocena { color: purple; }
+        .legend .zakljucna-ocena { color: black; }
         .action-buttons {
             margin-top: 20px;
         }
@@ -121,11 +105,10 @@
     </div>
 
     <script>
-        // Podatki o predmetih
         const predmeti = [
             { kratica: "SLO", naziv: "Slovenščina" },
             { kratica: "MAT", naziv: "Matematika" },
- 	    { kratica: "ANJ", naziv: "Angleščina" },
+            { kratica: "ANJ", naziv: "Angleščina" },
             { kratica: "UME", naziv: "Umetnost" },
             { kratica: "ZGO", naziv: "Zgodovina" },
             { kratica: "GEO", naziv: "Geografija" },
@@ -224,4 +207,3 @@
     </script>
 </body>
 </html>
-
