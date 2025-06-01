@@ -6,15 +6,9 @@
   <title>Ocene</title>
   <link rel="icon" href="Lg.png" type="image/png" />
   <style>
-    /* OBSTOJEČI STIL OHRANJEN ... */
     body {
       font-family: 'Aptos Narrow', sans-serif;
       margin: 20px;
-    }
-    select, input, button {
-      font-family: 'Aptos Narrow', sans-serif;
-      padding: 5px 10px;
-      margin-bottom: 10px;
     }
     table {
       width: 100%;
@@ -45,37 +39,38 @@
     .koncna-ocena { color: green; }
     .izdelek-ocena { color: purple; }
     .zakljucna-ocena { color: black; font-size: 1.2em; }
-    .pisna-ocena, .ustna-ocena, .koncna-ocena,
-    .izdelek-ocena, .zakljucna-ocena, .stara-ocena {
+    .stara-ocena {
+      font-size: 0.8em;
+    }
+    span[class$='-ocena'] {
       font-weight: bold;
       cursor: pointer;
       margin: 0 3px;
       display: inline-block;
     }
-    .stara-ocena {
-      font-size: 0.8em;
-    }
-    .pisna-ocena:hover, .ustna-ocena:hover, .koncna-ocena:hover,
-    .izdelek-ocena:hover, .zakljucna-ocena:hover, .stara-ocena:hover {
+    span:hover {
       text-decoration: underline;
     }
     .editable {
       cursor: pointer;
     }
 
-    /* MODAL: Osnovni stil */
+    /* Modal stil */
     .modal {
       display: none;
       position: fixed;
-      z-index: 100;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
     }
 
     .modal-content {
-      background-color: #fff;
-      margin: 15% auto;
+      background-color: #fefefe;
+      margin: 10% auto;
       padding: 20px;
       border: 1px solid #888;
       width: 300px;
@@ -83,14 +78,14 @@
       text-align: center;
     }
 
-    .modal-content select, .modal-content input {
-      width: 100%;
+    .modal-content select,
+    .modal-content input {
+      width: 90%;
       margin: 10px 0;
     }
 
     .modal-content button {
       margin: 5px;
-      padding: 5px 15px;
     }
   </style>
 </head>
@@ -109,68 +104,70 @@
     <tbody></tbody>
   </table>
 
-  <!-- MODAL: Vnos nove ali popravljene ocene -->
-  <div id="ocenaModal" class="modal">
+  <!-- Modal za vnos/popravek ocene -->
+  <div id="modal" class="modal">
     <div class="modal-content">
-      <h3>Vnos ocene</h3>
-      <select id="modalTipOcene">
+      <h3>Vnesi oceno</h3>
+      <select id="modalTip">
         <option value="pisna">Pisna</option>
         <option value="ustna">Ustna</option>
         <option value="koncna">Končna</option>
         <option value="izdelek">Izdelek</option>
         <option value="zakljucna">Zaključna</option>
       </select>
-      <input type="text" id="modalVrednost" placeholder="Vnesite oceno" />
-      <div>
-        <button id="modalPotrdi">Potrdi</button>
-        <button onclick="zapriModal()">Prekliči</button>
-      </div>
+      <input type="text" id="modalOcena" placeholder="Ocena (1–5)" />
+      <br/>
+      <button id="modalPotrdi">Potrdi</button>
+      <button onclick="zapriModal()">Prekliči</button>
     </div>
   </div>
 
   <script>
-    const predmeti = [...]; // ohrani seznam kot prej
+    const predmeti = [
+      { kratica: "SLO", naziv: "Slovenščina" },
+      { kratica: "MAT", naziv: "Matematika" },
+      { kratica: "ANJ", naziv: "Angleščina" },
+      { kratica: "UME", naziv: "Umetnost" },
+      { kratica: "ZGO", naziv: "Zgodovina" },
+      { kratica: "GEO", naziv: "Geografija" },
+      { kratica: "FIZ", naziv: "Fizika" },
+      { kratica: "KEM", naziv: "Kemija" },
+      { kratica: "ŠVZ", naziv: "Športna vzgoja" },
+      { kratica: "GOB", naziv: "Grafično oblikovanje" },
+      { kratica: "GMP", naziv: "Grafični in medijski procesi" },
+      { kratica: "IKT", naziv: "Informacijsko komunikacijska tehnologija" },
+      { kratica: "IPM", naziv: "Izbrana poglavja matematike" },
+      { kratica: "NEJ", naziv: "Nemščina" }
+    ];
+
     const tabela = document.querySelector("#oceneTabela tbody");
+    const modal = document.getElementById("modal");
+    const modalTip = document.getElementById("modalTip");
+    const modalOcena = document.getElementById("modalOcena");
 
-    function shraniOcene() { /* kot prej */ }
-    function naloziOcene() { return JSON.parse(localStorage.getItem("ocene")) || {}; }
-    function izracunajPovprecje(vrstica) { /* kot prej */ }
-    function izrisiOcene() { /* kot prej */ }
-
-    // MODAL: shranjevanje trenutnega konteksta
     let aktivnaCelica = null;
-    let popravljaOceno = null;
-
-    function odpriModal(celica, obstoječaOcena = null) {
-      aktivnaCelica = celica;
-      popravljaOceno = obstoječaOcena;
-      document.getElementById("modalVrednost").value = obstoječaOcena?.textContent || "";
-      document.getElementById("modalTipOcene").value = obstoječaOcena
-        ? obstoječaOcena.className.split("-")[0]
-        : "pisna";
-      document.getElementById("ocenaModal").style.display = "block";
-    }
+    let popraviSpan = null;
 
     function zapriModal() {
-      document.getElementById("ocenaModal").style.display = "none";
-      aktivnaCelica = null;
-      popravljaOceno = null;
+      modal.style.display = "none";
+      modalOcena.value = "";
+      popraviSpan = null;
     }
 
     document.getElementById("modalPotrdi").onclick = () => {
-      const tip = document.getElementById("modalTipOcene").value;
-      const vrednost = document.getElementById("modalVrednost").value.trim();
+      const tip = modalTip.value;
+      const vrednost = modalOcena.value.trim();
       if (!vrednost) return;
 
       const span = document.createElement("span");
       span.className = `${tip}-ocena`;
       span.textContent = vrednost;
 
-      if (popravljaOceno) {
-        popravljaOceno.classList.remove(`${tip}-ocena`);
-        popravljaOceno.classList.add("stara-ocena");
-        popravljaOceno.insertAdjacentText("afterend", " ");
-        popravljaOceno.insertAdjacentElement("afterend", span);
+      if (popraviSpan) {
+        popraviSpan.classList.remove(`${tip}-ocena`);
+        popraviSpan.classList.add("stara-ocena");
+        popraviSpan.insertAdjacentText("afterend", " ");
+        popraviSpan.insertAdjacentElement("afterend", span);
       } else {
         aktivnaCelica.appendChild(span);
         aktivnaCelica.appendChild(document.createTextNode(" "));
@@ -181,22 +178,85 @@
       zapriModal();
     };
 
+    function shraniOcene() {
+      const podatki = {};
+      for (let vrstica of tabela.rows) {
+        const predmet = vrstica.cells[0].querySelector(".kratica").textContent;
+        podatki[predmet] = {};
+        for (let i = 1; i <= 3; i++) {
+          const celica = vrstica.cells[i];
+          const spans = celica.querySelectorAll("span");
+          podatki[predmet][i] = [];
+          spans.forEach(span => {
+            if (span.classList.contains("stara-ocena")) return;
+            const tip = span.className.split("-")[0];
+            podatki[predmet][i].push({ tip: tip, vrednost: span.textContent });
+          });
+        }
+      }
+      localStorage.setItem("ocene", JSON.stringify(podatki));
+    }
+
+    function naloziOcene() {
+      return JSON.parse(localStorage.getItem("ocene")) || {};
+    }
+
+    function izracunajPovprecje(vrstica) {
+      let ocene = [];
+      for (let i = 1; i <= 3; i++) {
+        const spans = vrstica.cells[i].querySelectorAll("span:not(.stara-ocena)");
+        spans.forEach(span => {
+          const val = parseFloat(span.textContent);
+          if (!isNaN(val)) ocene.push(val);
+        });
+      }
+      if (ocene.length === 0) return "—";
+      const sum = ocene.reduce((a, b) => a + b, 0);
+      return (sum / ocene.length).toFixed(2);
+    }
+
+    function izrisiOcene() {
+      const ocene = naloziOcene();
+      tabela.innerHTML = "";
+
+      predmeti.forEach(predmet => {
+        const vrstica = tabela.insertRow();
+        const celicaPredmet = vrstica.insertCell();
+        celicaPredmet.innerHTML = `<span class="kratica">${predmet.kratica}</span><br>${predmet.naziv}<span class="povprecje"></span>`;
+
+        for (let i = 1; i <= 3; i++) {
+          const td = vrstica.insertCell();
+          td.classList.add("editable");
+          td.dataset.predmet = predmet.kratica;
+          td.dataset.stolpec = i;
+          const vseOcene = ocene[predmet.kratica]?.[i] || [];
+          vseOcene.forEach(ocena => {
+            const span = document.createElement("span");
+            span.className = `${ocena.tip}-ocena`;
+            span.textContent = ocena.vrednost;
+            td.appendChild(span);
+            td.appendChild(document.createTextNode(" "));
+          });
+        }
+
+        const povprecje = izracunajPovprecje(vrstica);
+        celicaPredmet.querySelector(".povprecje").textContent = `Povprečje: ${povprecje}`;
+      });
+    }
+
     tabela.addEventListener("click", (e) => {
       const target = e.target;
 
       if (target.matches(".pisna-ocena, .ustna-ocena, .koncna-ocena, .izdelek-ocena, .zakljucna-ocena")) {
-        const akcija = confirm("Popravi to oceno? Klikni 'Prekliči' za izbris.");
-        if (akcija) {
-          odpriModal(target.closest("td"), target);
-        } else {
-          target.remove();
-          shraniOcene();
-          izrisiOcene();
-        }
+        aktivnaCelica = target.closest("td");
+        popraviSpan = target;
+        modalTip.value = target.className.split("-")[0];
+        modalOcena.value = target.textContent;
+        modal.style.display = "block";
         return;
       }
 
-      if (target.matches(".stara-ocena")) {
+      if (target.classList.contains("stara-ocena")) {
         if (confirm("Želite izbrisati staro oceno?")) {
           target.remove();
           shraniOcene();
@@ -206,7 +266,10 @@
       }
 
       if (target.classList.contains("editable")) {
-        odpriModal(target);
+        aktivnaCelica = target;
+        modalTip.value = "pisna";
+        modalOcena.value = "";
+        modal.style.display = "block";
       }
     });
 
@@ -214,4 +277,3 @@
   </script>
 </body>
 </html>
-
