@@ -52,8 +52,8 @@
     .zakljucna-ocena { color: black; font-size: 1.2em; }
     .stara-ocena {
       font-size: 0.8em;
+      color: gray;
       cursor: pointer;
-      /* odstranjen color: gray; */
     }
     .pisna-ocena:hover, .ustna-ocena:hover, .koncna-ocena:hover,
     .izdelek-ocena:hover, .zakljucna-ocena:hover, .stara-ocena:hover {
@@ -182,39 +182,33 @@
         target.matches(".pisna-ocena, .ustna-ocena, .koncna-ocena, .izdelek-ocena, .zakljucna-ocena")
       ) {
         const stara = target.textContent;
-        const tip = target.className.split("-")[0];
         const td = target.closest("td");
         const akcija = prompt(`OCENA: ${stara}\n1. IZBRIŠI\n2. POPRAVI`);
 
         if (akcija === "1") {
           target.remove();
           shraniOcene();
-          // posodobimo povprečje po brisanju
           const vrstica = td.closest("tr");
-          const celicaPredmet = vrstica.cells[0];
-          const povprecjeSpan = celicaPredmet.querySelector(".povprecje");
+          const povprecjeSpan = vrstica.cells[0].querySelector(".povprecje");
           povprecjeSpan.textContent = `Povprečje: ${izracunajPovprecje(vrstica)}`;
         } else if (akcija === "2") {
           const nova = prompt("VNESITE NOVO OCENO:");
           if (nova) {
+            const noviTip = tipOceneSelect.value;
             const novaSpan = document.createElement("span");
-            novaSpan.className = `${tip}-ocena`;
+            novaSpan.className = `${noviTip}-ocena`;
             novaSpan.textContent = nova;
 
-            // označi staro samo s pomanjšano velikostjo
             target.classList.add("stara-ocena");
-            target.classList.remove(`${tip}-ocena`);
+            target.classList.remove(...target.classList);
+            target.classList.add("stara-ocena");
 
-            // dodaj novo desno od stare
             target.insertAdjacentText("afterend", " ");
             target.insertAdjacentElement("afterend", novaSpan);
 
             shraniOcene();
-
-            // ročno posodobi povprečje za vrstico (predmet)
             const vrstica = td.closest("tr");
-            const celicaPredmet = vrstica.cells[0];
-            const povprecjeSpan = celicaPredmet.querySelector(".povprecje");
+            const povprecjeSpan = vrstica.cells[0].querySelector(".povprecje");
             povprecjeSpan.textContent = `Povprečje: ${izracunajPovprecje(vrstica)}`;
           }
         }
@@ -226,8 +220,7 @@
           target.remove();
           shraniOcene();
           const vrstica = target.closest("tr");
-          const celicaPredmet = vrstica.cells[0];
-          const povprecjeSpan = celicaPredmet.querySelector(".povprecje");
+          const povprecjeSpan = vrstica.cells[0].querySelector(".povprecje");
           povprecjeSpan.textContent = `Povprečje: ${izracunajPovprecje(vrstica)}`;
         }
         return;
